@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Hasil - jalankerja.id</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Firebase Libraries -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #e6e7ee;
+            color: #4a5568;
+        }
+        .neumorphic-card {
+            background: #e6e7ee;
+            border-radius: 20px;
+            box-shadow: -7px -7px 20px 0px #fff, 7px 7px 20px 0px #b8b9be;
+        }
+        .neumorphic-inset {
+            background: #d1d9e6;
+            border-radius: 12px;
+            box-shadow: inset -5px -5px 15px 0px #fff, inset 5px 5px 15px 0px #b8b9be;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <!-- Loading Spinner -->
+    <div id="loading-overlay" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
+        <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="report-container" class="max-w-4xl mx-auto hidden">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold text-gray-800">jalankerja.id</h1>
+            <p class="text-lg text-gray-600">Laporan Psikometri Premium</p>
+        </header>
+
+        <div id="report-content" class="neumorphic-card p-8 md:p-12">
+            <!-- Content will be populated by JS -->
+        </div>
+
+        <footer class="text-center mt-8 text-gray-500">
+            <p>Ini adalah laporan hasil tes dari <a href="https://www.jalankerja.id" class="text-blue-600 font-semibold" target="_blank">jalankerja.id</a>.</p>
+            <p>&copy; 2025 jalankerja.id. Semua Hak Cipta Dilindungi.</p>
+        </footer>
+    </div>
+    
+    <div id="error-section" class="text-center hidden">
+        <h2 class="text-3xl font-bold text-red-500">Laporan Tidak Ditemukan</h2>
+        <p class="mt-4 text-lg text-gray-600">Link laporan ini tidak valid atau hasil tes telah dihapus.</p>
+        <a href="index.html" class="mt-8 inline-block bg-blue-600 text-white font-bold px-8 py-3 rounded-lg">Kembali ke Beranda</a>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            // PASTE KONFIGURASI FIREBASE ANDA DI SINI
+            apiKey: "...",
+            authDomain: "...",
+            projectId: "...",
+            storageBucket: "...",
+            messagingSenderId: "...",
+            appId: "..."
+        };
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const reportContainer = document.getElementById('report-container');
+        const errorSection = document.getElementById('error-section');
+        const reportContent = document.getElementById('report-content');
+        
+        // This is a placeholder for the full report generation logic.
+        // It should be identical to the one in `app.html` to ensure consistency.
+        const generateReportHTML = (userData, resultData) => {
+            // This function should contain the complete 15-page report structure
+            // For brevity here, we will just show a summary.
+            // IN PRODUCTION: Copy the entire `generateReportHTML` function from `app.html` here.
+            
+            const { talentCode, percentages, topThreeMK } = resultData;
+            const talentData = getTalentData(talentCode); // Assuming getTalentData function is also copied here
+
+            // Helper function to find supporting powers' data
+            const findMKData = (mk) => {
+                 const keys = Object.keys(talentDatabase);
+                 for (const key of keys) {
+                     if (talentDatabase[key].mk.toLowerCase().startsWith(mk.toLowerCase())) {
+                         return talentDatabase[key];
+                     }
+                 }
+                 return null;
+            }
+
+            const primaryPower = talentData;
+            const support1MK = topThreeMK[1].name;
+            const support2MK = topThreeMK[2].name;
+            const support1Data = findMKData(support1MK);
+            const support2Data = findMKData(support2MK);
+
+            return `
+                <div class="text-center border-b-2 border-gray-300 pb-8 mb-8">
+                    <h2 class="text-4xl font-extrabold text-gray-800">${userData.name}</h2>
+                    <p class="text-2xl font-semibold text-blue-600 mt-2">${talentData.title} (${talentCode.toUpperCase()})</p>
+                    <p class="mt-4 text-lg">${talentData.tagline}</p>
+                </div>
+
+                <div class="mb-8">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">Komposisi Mesin Kecerdasan Anda</h3>
+                    <div class="space-y-4">
+                        ${Object.entries(percentages).sort(([,a],[,b]) => b-a).map(([name, value]) => `
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="font-semibold">${name}</span>
+                                    <span>${value}%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-4 neumorphic-inset p-1">
+                                    <div class="bg-blue-600 h-2 rounded-full" style="width: ${value}%"></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                 <div class="text-center border-t-2 border-gray-300 pt-8 mt-8">
+                    <p class="font-semibold">Laporan ini dibuat pada: ${new Date(resultData.createdAt.seconds * 1000).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                </div>
+            `;
+        };
+        
+        // Placeholder for the extensive talentDatabase object
+        const getTalentData = (code) => {
+            const talentDatabase = { /* PASTE THE ENTIRE talentDatabase OBJECT FROM app.html HERE */ 
+                 "Se": { title: "Sensing extrovert", mk: "Sensing", tagline: "Energi Anda terpancar melalui aksi dan pengalaman nyata." },
+                 "Si": { title: "Sensing introvert", mk: "Sensing", tagline: "Kekuatan Anda terletak pada ingatan detail dan konsistensi." },
+                 "Te": { title: "Thinking extrovert", mk: "Thinking", tagline: "Anda terdorong untuk menciptakan sistem yang logis dan efisien." },
+                 "Ti": { title: "Thinking introvert", mk: "Thinking", tagline: "Anda unggul dalam menganalisis dan memahami cara kerja sistem." },
+                 "Ie": { title: "Intuiting extrovert", mk: "Intuiting", tagline: "Anda melihat peluang dan koneksi yang tidak dilihat orang lain." },
+                 "Ii": { title: "Intuiting introvert", mk: "Intuiting", tagline: "Anda menyelami makna dan konsep untuk menciptakan visi." },
+                 "Fe": { title: "Feeling extrovert", mk: "Feeling", tagline: "Anda terampil dalam membangun harmoni dan hubungan antarmanusia." },
+                 "Fi": { title: "Feeling introvert", mk: "Feeling", tagline: "Anda dipandu oleh nilai-nilai internal yang kuat dan otentik." },
+                 "In": { title: "Instinct", mk: "Instinct", tagline: "Anda memiliki naluri tajam untuk merespons dan membantu secara spontan." }
+            };
+            return talentDatabase[code] || talentDatabase["In"];
+        };
+
+
+        window.onload = async () => {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const resultId = urlParams.get('id');
+
+                if (!resultId) {
+                    throw new Error("ID Laporan tidak ditemukan.");
+                }
+
+                const resultDoc = await db.collection('results').doc(resultId).get();
+
+                if (!resultDoc.exists) {
+                    throw new Error("Data laporan tidak ada.");
+                }
+                
+                const resultData = resultDoc.data();
+                const userDoc = await db.collection('users').doc(resultData.userId).get();
+
+                if (!userDoc.exists) {
+                    throw new Error("Data pengguna tidak ditemukan.");
+                }
+
+                const userData = userDoc.data();
+
+                // IMPORTANT: In production, you must copy the FULL `generateReportHTML` function 
+                // from app.html into this file for the report to be complete.
+                // For this example, we are using a simplified version.
+                // This means you also need to copy the FULL `talentDatabase` object.
+                reportContent.innerHTML = `
+                    <p class="text-center font-bold text-red-500 p-4 neumorphic-inset mb-4">
+                        MODE PREVIEW: Untuk melihat laporan lengkap 15 halaman, silakan login ke dashboard Anda.
+                    </p>
+                    ${generateReportHTML(userData, resultData)}
+                `;
+
+
+                reportContainer.classList.remove('hidden');
+
+            } catch (error) {
+                console.error("Error loading report:", error);
+                errorSection.classList.remove('hidden');
+            } finally {
+                loadingOverlay.classList.add('hidden');
+            }
+        };
+    </script>
+</body>
+</html>
