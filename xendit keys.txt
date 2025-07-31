@@ -1,0 +1,7 @@
+secret API Key
+xendit
+xnd_development_CJFPvipR4PNXDWQLyehiySeNMLITQDtDuW8TtQxOD3ZgLadfvqXXmF6e7otn47pM
+
+
+Webhook verification token
+w1PtEEqhEYBQWTBnvLyAE2TUaOmSsCusHkzlP4WkTWINF370
