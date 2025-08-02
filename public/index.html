@@ -3,136 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>jalankerja.id - Peta Jalan Karier Siswa Anda</title>
+    <title>jalankerja.id - Peta Jalan Karier Digital untuk Siswa Indonesia</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #e6e7ee;
-        }
-        .neumorphic-btn {
-            background: #e6e7ee;
-            border-radius: 20px;
-            box-shadow: -7px -7px 20px 0px #fff9, -4px -4px 5px 0px #fff9, 7px 7px 20px 0px #0002, 4px 4px 5px 0px #0001;
-            transition: all 0.3s ease;
-        }
-        .neumorphic-btn:hover {
-            box-shadow: inset -7px -7px 20px 0px #fff9, inset -4px -4px 5px 0px #fff9, inset 7px 7px 20px 0px #0002, inset 4px 4px 5px 0px #0001;
-        }
-        .neumorphic-card {
-            background: #e6e7ee;
-            border-radius: 30px;
-            box-shadow: -7px -7px 20px 0px #fff9, -4px -4px 5px 0px #fff9, 7px 7px 20px 0px #0002, 4px 4px 5px 0px #0001;
-        }
-        .neumorphic-inset {
-            background: #e6e7ee;
-            border-radius: 20px;
-            box-shadow: inset -7px -7px 20px 0px #fff9, inset -4px -4px 5px 0px #fff9, inset 7px 7px 20px 0px #0002, inset 4px 4px 5px 0px #0001;
-        }
-        .accent-color {
-            color: #2563eb;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
+        .gradient-text { background: -webkit-linear-gradient(45deg, #3b82f6, #1e40af); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .cta-button { transition: all 0.3s ease; }
+        .cta-button:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2); }
     </style>
 </head>
-<body class="text-gray-700">
+<body class="text-gray-800">
 
     <!-- Header -->
-    <header class="container mx-auto px-6 py-8">
-        <div class="flex justify-between items-center">
-            <h1 class="text-3xl font-extrabold text-gray-800">jalankerja.id</h1>
-            <a href="app.html" class="neumorphic-btn px-6 py-3 font-bold text-gray-800">Masuk / Daftar</a>
-        </div>
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-2xl font-extrabold text-gray-800">
+                jalankerja<span class="text-blue-600">.id</span>
+            </div>
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="#fitur" class="text-gray-600 hover:text-blue-600 font-semibold">Fitur</a>
+                <a href="#harga" class="text-gray-600 hover:text-blue-600 font-semibold">Harga</a>
+                <a href="affiliate.html" class="text-gray-600 hover:text-blue-600 font-semibold">Program Mitra</a>
+            </div>
+            <a href="app.html" class="cta-button px-6 py-3 font-bold text-white bg-blue-600 rounded-lg shadow-md">
+                Masuk / Daftar
+            </a>
+        </nav>
     </header>
 
     <!-- Hero Section -->
-    <section class="container mx-auto px-6 py-16 text-center">
-        <div class="neumorphic-card p-8 md:p-16">
-            <h2 class="text-4xl md:text-6xl font-extrabold text-gray-800 leading-tight">Siswa Bingung Pilih Jurusan?</h2>
-            <p class="text-xl md:text-2xl mt-4 accent-color font-semibold">Saatnya Beralih ke Peta Jalan Karier Digital.</p>
-            <p class="mt-6 max-w-3xl mx-auto text-lg text-gray-600">
-                Berhentilah menebak-nebak masa depan anak Anda. `jalankerja.id` memberikan laporan psikometri 15 halaman yang mendalam dan berbasis data untuk mengungkap potensi sejati mereka, memberikan kejelasan, dan menghilangkan kecemasan dalam memilih jurusan.
-            </p>
-            <div class="mt-10">
-                <a href="app.html#register" class="neumorphic-btn text-xl bg-blue-600 text-white font-bold px-10 py-5 inline-block">
-                    Temukan Potensi Anak Sekarang
-                </a>
-                <p class="mt-4 text-sm text-gray-500">Dapatkan harga promo dengan kode dari mitra kami.</p>
+    <main class="container mx-auto px-6 pt-16 pb-24 text-center">
+        <h1 class="text-4xl md:text-6xl font-extrabold leading-tight mb-4">
+            Ubah Kebingungan Menjadi <span class="gradient-text">Kejelasan Karier.</span>
+        </h1>
+        <p class="text-lg md:text-xl max-w-3xl mx-auto text-gray-600 mb-10">
+            Platform psikometri digital #1 di Indonesia yang membantu siswa SMP & SMA menemukan jurusan dan merencanakan masa depan dengan percaya diri, berbasis data yang akurat.
+        </p>
+        <a href="app.html#register" class="cta-button px-10 py-5 font-bold text-white bg-blue-600 rounded-lg text-xl shadow-xl">
+            Ikuti Tes Sekarang
+        </a>
+        <p class="mt-4 text-sm text-gray-500">Dapatkan laporan premium 15 halaman secara instan.</p>
+    </main>
+
+    <!-- Social Proof Section -->
+    <section class="py-12 bg-gray-100">
+        <div class="container mx-auto px-6">
+            <p class="text-center text-gray-500 font-semibold">Telah Dipercaya oleh Institusi Pendidikan Terkemuka:</p>
+            <div class="flex justify-center items-center space-x-8 md:space-x-12 mt-6 grayscale opacity-60">
+                <img src="https://placehold.co/120x40/000000/FFFFFF?text=SEKOLAH+MAJU" alt="Logo Sekolah Maju" class="h-8">
+                <img src="https://placehold.co/120x40/000000/FFFFFF?text=YAYASAN+CERDAS" alt="Logo Yayasan Cerdas" class="h-8">
+                <img src="https://placehold.co/120x40/000000/FFFFFF?text=BIMBEL+SUKSES" alt="Logo Bimbel Sukses" class="h-8">
+                <img src="https://placehold.co/120x40/000000/FFFFFF?text=DINAS+PENDIDIKAN" alt="Logo Dinas Pendidikan" class="h-8">
             </div>
         </div>
     </section>
 
     <!-- Value Proposition Section -->
-    <section class="container mx-auto px-6 py-20">
-        <h3 class="text-3xl font-extrabold text-center text-gray-800 mb-12">Investasi Cerdas untuk Masa Depan Terarah</h3>
-        <div class="grid md:grid-cols-3 gap-10">
-            <!-- Card 1: The Problem -->
-            <div class="neumorphic-card p-8">
-                <div class="neumorphic-inset w-20 h-20 mx-auto flex items-center justify-center rounded-full mb-6">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 accent-color" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                </div>
-                <h4 class="text-2xl font-bold text-center text-gray-800">Risiko Salah Jurusan</h4>
-                <p class="mt-4 text-center text-gray-600">Biaya salah jurusan bukan hanya soal uang kuliah, tapi juga waktu dan kepercayaan diri anak yang hilang. Mencegahnya jauh lebih murah daripada memperbaikinya.</p>
+    <section id="fitur" class="py-20">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-extrabold">Bukan Sekadar Tes, Tapi Ekosistem Pendukung</h2>
+                <p class="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">Kami memberikan nilai jauh melampaui hasil tes biasa.</p>
             </div>
-            <!-- Card 2: The Solution -->
-            <div class="neumorphic-card p-8">
-                <div class="neumorphic-inset w-20 h-20 mx-auto flex items-center justify-center rounded-full mb-6">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 accent-color" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-white p-8 rounded-xl shadow-lg text-center">
+                    <h3 class="text-xl font-bold mb-3">Laporan 15 Halaman Mendalam</h3>
+                    <p>Analisis komprehensif 9 Kode Bakat, Peta Jurusan Kuliah, hingga Panduan Interaksi untuk orang tua.</p>
                 </div>
-                <h4 class="text-2xl font-bold text-center text-gray-800">Kejelasan Berbasis Data</h4>
-                <p class="mt-4 text-center text-gray-600">Laporan 15 halaman kami memberikan analisis mendalam tentang "Mesin Kecerdasan" anak, memberikan kompas yang jelas untuk memilih jurusan yang paling selaras dengan potensi alaminya.</p>
-            </div>
-            <!-- Card 3: The Benefit -->
-            <div class="neumorphic-card p-8">
-                <div class="neumorphic-inset w-20 h-20 mx-auto flex items-center justify-center rounded-full mb-6">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 accent-color" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 21a9.003 9.003 0 008.846-11.87L13 21z" /></svg>
+                <div class="bg-white p-8 rounded-xl shadow-lg text-center">
+                    <h3 class="text-xl font-bold mb-3">Dashboard Analitik untuk Sekolah</h3>
+                    <p>Guru BK mendapatkan akses ke laporan kolektif untuk melihat tren bakat dan mendukung program bimbingan karier.</p>
                 </div>
-                <h4 class="text-2xl font-bold text-center text-gray-800">Panduan untuk Orang Tua</h4>
-                <p class="mt-4 text-center text-gray-600">Anda tidak hanya mendapatkan hasil, tapi juga "buku panduan" untuk berkomunikasi, memotivasi, dan mendukung anak sesuai karakter unik mereka. Ini tak ternilai.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- How It Works -->
-    <section class="container mx-auto px-6 py-20 bg-white/30 rounded-3xl">
-        <h3 class="text-3xl font-extrabold text-center text-gray-800 mb-12">Hanya 3 Langkah Sederhana</h3>
-        <div class="grid md:grid-cols-3 gap-10 text-center">
-            <div class="p-4">
-                <div class="neumorphic-card w-24 h-24 mx-auto flex items-center justify-center rounded-full mb-6">
-                    <span class="text-4xl font-extrabold accent-color">1</span>
+                <div class="bg-white p-8 rounded-xl shadow-lg text-center">
+                    <h3 class="text-xl font-bold mb-3">Sertifikat & Portofolio Digital</h3>
+                    <p>Setiap siswa mendapatkan sertifikat profesional yang bisa di-co-branding dengan logo sekolah, aset berharga untuk masa depan.</p>
                 </div>
-                <h4 class="text-xl font-bold text-gray-800">Daftar & Bayar</h4>
-                <p class="mt-2 text-gray-600">Buat akun dengan mudah dan selesaikan pembayaran. Gunakan kode dari mitra sekolah atau affiliate kami untuk harga spesial.</p>
-            </div>
-            <div class="p-4">
-                <div class="neumorphic-card w-24 h-24 mx-auto flex items-center justify-center rounded-full mb-6">
-                    <span class="text-4xl font-extrabold accent-color">2</span>
-                </div>
-                <h4 class="text-xl font-bold text-gray-800">Ikuti Tes Online</h4>
-                <p class="mt-2 text-gray-600">Siswa menjawab 50 pertanyaan yang dirancang khusus untuk memetakan potensi inti. Hanya butuh sekitar 15-20 menit.</p>
-            </div>
-            <div class="p-4">
-                <div class="neumorphic-card w-24 h-24 mx-auto flex items-center justify-center rounded-full mb-6">
-                    <span class="text-4xl font-extrabold accent-color">3</span>
-                </div>
-                <h4 class="text-xl font-bold text-gray-800">Dapatkan Laporan Instan</h4>
-                <p class="mt-2 text-gray-600">Laporan premium 15 halaman langsung tersedia di dashboard, lengkap dengan sertifikat dan link yang bisa dibagikan.</p>
             </div>
         </div>
     </section>
     
     <!-- CTA Section -->
-    <section class="bg-white py-16 md:py-24">
+    <section id="harga" class="py-20 bg-gray-100">
         <div class="container mx-auto px-6">
-            <div class="neumorphic-outset rounded-2xl p-8 md:p-16 text-center">
+            <div class="bg-white rounded-2xl shadow-2xl p-8 md:p-16 text-center max-w-3xl mx-auto">
                 <h2 class="text-3xl md:text-4xl font-extrabold mb-4">Siap Mengakhiri Kebingungan?</h2>
                 <p class="text-lg text-gray-600 max-w-2xl mx-auto mb-8">Berikan anak Anda hadiah terbaik: kejelasan dan kepercayaan diri untuk melangkah ke jenjang berikutnya.</p>
-                <div class="inline-block text-center">
-                    <p class="text-sm line-through text-gray-500">Harga Normal Rp 399.000</p>
+                <div class="inline-block text-center bg-gray-50 p-6 rounded-xl">
+                    <p class="text-lg line-through text-gray-500">Harga Normal Rp 399.000</p>
                     <p class="text-4xl md:text-5xl font-extrabold text-blue-600 mb-6">Hanya Rp 247.000</p>
                 </div>
                 <br>
-                <a href="app.html" class="px-10 py-5 font-bold text-white bg-blue-600 rounded-full text-xl neumorphic-btn shadow-xl hover:bg-blue-700">
+                <a href="app.html" class="cta-button mt-8 px-10 py-5 font-bold text-white bg-blue-600 rounded-lg text-xl shadow-xl">
                     Dapatkan Akses Tes Sekarang
                 </a>
                 <p class="text-xs text-gray-500 mt-4">Akses tes seumur hidup, hanya sekali bayar.</p>
@@ -141,13 +103,8 @@
     </section>
 
     <!-- Footer -->
-    <footer class="container mx-auto px-6 py-10 mt-12 text-center">
-        <div class="flex justify-center space-x-6">
-            <a href="affiliate.html" class="text-gray-600 hover:text-blue-600 font-semibold">Program Affiliate</a>
-            <a href="#" class="text-gray-600 hover:text-blue-600 font-semibold">Kemitraan Sekolah</a>
-            <a href="#" class="text-gray-600 hover:text-blue-600 font-semibold">Hubungi Kami</a>
-        </div>
-        <p class="mt-6 text-gray-500">&copy; 2025 jalankerja.id. Semua Hak Cipta Dilindungi.</p>
+    <footer class="container mx-auto px-6 py-10 text-center text-gray-500">
+        <p>&copy; 2025 jalankerja.id. Semua Hak Cipta Dilindungi.</p>
     </footer>
 
 </body>

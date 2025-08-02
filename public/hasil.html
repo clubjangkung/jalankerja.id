@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Hasil - jalankerja.id</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Firebase Libraries -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f0f2f5; 
+        }
+        .report-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 text-gray-800">
+
+    <!-- Loading State -->
+    <div id="loading-state" class="text-center">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-600 mx-auto"></div>
+        <p class="mt-4 font-semibold text-gray-600">Memuat Laporan...</p>
+    </div>
+
+    <!-- Main Content -->
+    <div id="report-container" class="max-w-4xl mx-auto hidden">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold">jalankerja<span class="text-blue-600">.id</span></h1>
+            <p class="text-lg text-gray-600">Laporan Psikometri Premium</p>
+        </header>
+
+        <div id="report-content" class="report-card p-8 md:p-12">
+            <!-- Content will be populated by JavaScript -->
+        </div>
+
+        <footer class="text-center mt-8 text-gray-500">
+            <p>Ini adalah laporan hasil tes dari <a href="https://www.jalankerja.id" class="text-blue-600 font-semibold" target="_blank">jalankerja.id</a>.</p>
+            <p class="text-sm">&copy; 2025 jalankerja.id. Semua Hak Cipta Dilindungi.</p>
+        </footer>
+    </div>
+    
+    <div id="error-state" class="text-center hidden">
+        <h2 class="text-3xl font-bold text-red-500">Laporan Tidak Ditemukan</h2>
+        <p class="mt-4 text-lg text-gray-600">Link laporan ini tidak valid atau hasil tes telah dihapus.</p>
+        <a href="index.html" class="mt-8 inline-block bg-blue-600 text-white font-bold px-8 py-3 rounded-lg">Kembali ke Beranda</a>
+    </div>
+
+<script type="module">
+    // --- FIREBASE SETUP ---
+    // PENTING: Ganti dengan konfigurasi Firebase Anda
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_AUTH_DOMAIN",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // --- DOM ELEMENTS ---
+    const loadingState = document.getElementById('loading-state');
+    const reportContainer = document.getElementById('report-container');
+    const errorState = document.getElementById('error-state');
+    const reportContent = document.getElementById('report-content');
+    
+    // --- REPORT GENERATION LOGIC ---
+    // PENTING: Fungsi ini dan `talentDatabase` harus identik dengan yang ada di `app.html`
+    // untuk memastikan konsistensi tampilan laporan.
+    const generateReportHTML = (userData, resultData) => {
+        // This function should contain the complete 15-page report structure.
+        // For brevity here, we will just show a summary.
+        // IN PRODUCTION: Copy the entire `generateReportHTML` function from `app.html` here.
+        
+        // Placeholder for the full report structure
+        return `
+            <div class="text-center border-b pb-8 mb-8">
+                <h2 class="text-4xl font-extrabold">${userData.displayName}</h2>
+                <p class="text-2xl font-semibold text-blue-600 mt-2">${resultData.talentCodeData.typeName} (${resultData.talentCode})</p>
+                <p class="mt-4 text-lg">${resultData.talentCodeData.nickname}</p>
+            </div>
+            <div class="text-center">
+                <h3 class="text-2xl font-bold mb-4">Laporan Lengkap Tersedia di Dashboard</h3>
+                <p>Untuk melihat laporan lengkap 15 halaman, termasuk Peta Jurusan Kuliah, Panduan Interaksi, dan Jalur Karier Dinamis, silakan login atau daftar di jalankerja.id.</p>
+                <a href="app.html" class="mt-6 inline-block bg-blue-600 text-white font-bold px-8 py-3 rounded-lg">Masuk ke Dashboard</a>
+            </div>
+        `;
+    };
+
+    // --- MAIN FUNCTION ---
+    window.onload = async () => {
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const resultId = urlParams.get('id');
+
+            if (!resultId) {
+                throw new Error("ID Laporan tidak ditemukan.");
+            }
+
+            const resultDoc = await db.collection('results').doc(resultId).get();
+
+            if (!resultDoc.exists) {
+                throw new Error("Data laporan tidak ada.");
+            }
+            
+            const resultData = resultDoc.data();
+            const userDoc = await db.collection('users').doc(resultData.userId).get();
+
+            if (!userDoc.exists) {
+                throw new Error("Data pengguna tidak ditemukan.");
+            }
+
+            const userData = userDoc.data();
+            
+            // PENTING: Salin fungsi `generateReportHTML` yang lengkap dari `app.html` ke sini
+            // agar laporan yang ditampilkan di halaman publik ini sama persis.
+            reportContent.innerHTML = generateReportHTML(userData, resultData);
+            reportContainer.classList.remove('hidden');
+
+        } catch (error) {
+            console.error("Error loading report:", error);
+            errorState.classList.remove('hidden');
+        } finally {
+            loadingState.classList.add('hidden');
+        }
+    };
+</script>
+</body>
+</html>

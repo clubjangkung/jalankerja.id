@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - jalankerja.id</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Firebase Libraries -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <!-- PDF Generation Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; }
+        .screen { display: none; }
+        .screen.active { display: block; }
+        .sidebar { transition: transform 0.3s ease-in-out; }
+        .sidebar-link { transition: all 0.2s ease; }
+        .sidebar-link:hover, .sidebar-link.active { background-color: #eef2ff; color: #4f46e5; border-radius: 8px; font-weight: 600; }
+        .kpi-card { background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .cta-button { transition: all 0.3s ease; }
+        .cta-button:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2); }
+        .input-field {
+            background-color: #f8f9fa;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            width: 100%;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div id="app-container" class="w-full">
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="screen active min-h-screen flex items-center justify-center">
+             <div class="text-center">
+                <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-600 mx-auto"></div>
+                <p class="mt-4 font-semibold text-gray-600">Memuat...</p>
+            </div>
+        </div>
+
+        <!-- Login / Register Screen (Centered) -->
+        <div id="auth-screen-container" class="screen min-h-screen flex items-center justify-center p-4">
+            <!-- Login/Register content will be rendered here -->
+        </div>
+
+        <!-- Main Dashboard Layout (for logged-in users) -->
+        <div id="dashboard-layout" class="screen">
+            <div class="flex h-screen bg-gray-100">
+                <!-- Sidebar -->
+                <aside id="sidebar-container" class="w-64 bg-white shadow-lg flex-shrink-0 hidden lg:flex flex-col">
+                    <!-- Sidebar content will be rendered here -->
+                </aside>
+                
+                <!-- Main Content -->
+                <main class="flex-1 flex flex-col overflow-hidden">
+                    <header class="flex justify-between items-center p-4 bg-white border-b">
+                        <div class="flex items-center">
+                            <button id="menu-toggle-btn" class="text-gray-500 focus:outline-none lg:hidden">
+                                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6H20M4 12H20M4 18H11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </button>
+                            <h1 id="dashboard-title" class="text-xl font-semibold ml-4">Dashboard</h1>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div class="text-right">
+                                <p id="user-profile-name" class="font-semibold text-sm">Nama Pengguna</p>
+                                <p id="user-profile-role" class="text-xs text-gray-500">Peran</p>
+                            </div>
+                            <button id="logout-btn" class="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-600">Keluar</button>
+                        </div>
+                    </header>
+                    <div id="main-content-container" class="flex-1 p-6 overflow-y-auto">
+                        <!-- Dashboard content will be rendered here -->
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+
+<script type="module">
+    // --- FIREBASE SETUP ---
+    // PENTING: Ganti dengan konfigurasi Firebase Anda
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_AUTH_DOMAIN",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
+    
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const functions = firebase.functions();
+    const storage = firebase.storage();
+
+    // --- STATE MANAGEMENT ---
+    let state = {
+        currentPage: 'loading',
+        user: null,
+        userData: null,
+        // ... state lainnya
+    };
+
+    // --- KONTEN & DATABASE ---
+    // (Salin semua objek database: questions (50), resultsData, careerPathDatabase, dll. di sini)
+
+    // --- FUNGSI RENDER UTAMA ---
+    const renderApp = () => {
+        // ... (Logika render utama yang sama seperti di respons sebelumnya)
+        // ... (Fungsi ini akan memilih konten mana yang akan ditampilkan: login, dashboard, dll.)
+    };
+    
+    // --- TEMPLATE RENDERING ---
+    // (Salin semua fungsi render HTML seperti renderLogin, renderRegister, renderSidebar,
+    // renderAdminDashboardContent, renderAffiliateDashboardContent, renderUserDashboardContent,
+    // renderPayment, renderTest, renderResult, renderCounselorMVP, dll. di sini)
+    // Pastikan semua menggunakan class CSS baru yang bersih, bukan Neumorphic.
+
+    // --- FUNGSI LOGIKA UTAMA ---
+    // (Salin semua fungsi logika seperti handleLogin, handleRegister, handleProofUpload,
+    // processActivation, calculateResult, dll. dari versi semi-otomatis sebelumnya)
+
+    // --- INISIALISASI ---
+    onAuthStateChanged(auth, async (user) => {
+        // ... (Logika onAuthStateChanged yang sudah ada, yang menentukan state.currentPage)
+        renderApp();
+    });
+
+    // Panggil render pertama kali
+    renderApp();
+</script>
+</body>
+</html>
