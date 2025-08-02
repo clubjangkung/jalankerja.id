@@ -91,16 +91,23 @@
     </div>
 
 <script type="module">
-    // --- FIREBASE SETUP ---
-    // PENTING: Ganti dengan konfigurasi Firebase Anda
-    const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_AUTH_DOMAIN",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_STORAGE_BUCKET",
-        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-        appId: "YOUR_APP_ID"
-    };
+    // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyA5KSxBE05HqdDM9rvu_ZAJHhxhtZQAWjY",
+    authDomain: "jalankerja-id.firebaseapp.com",
+    projectId: "jalankerja-id",
+    storageBucket: "jalankerja-id.firebasestorage.app",
+    messagingSenderId: "618843238157",
+    appId: "1:618843238157:web:356b3f4eb985f259668a44",
+    measurementId: "G-120E5TY2YZ"
+  };
     
     const app = firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
@@ -117,32 +124,81 @@
     };
 
     // --- KONTEN & DATABASE ---
-    // (Salin semua objek database: questions (50), resultsData, careerPathDatabase, dll. di sini)
+    
+    // [UPDATE] KUESIONER BARU (50 PERTANYAAN)
+    const questions = [
+        // Sensing (9 Pertanyaan)
+        { text: "Saya lebih percaya pada pengalaman nyata daripada teori.", category: 'S' },
+        { text: "Saya mudah mengingat detail spesifik dari percakapan atau kejadian.", category: 'S' },
+        { text: "Saat belajar hal baru, saya lebih suka langsung mempraktikkannya.", category: 'S' },
+        { text: "Saya fokus pada apa yang terjadi saat ini, bukan berandai-andai tentang masa depan.", category: 'S' },
+        { text: "Saya lebih suka mengikuti instruksi yang sudah jelas langkah-langkahnya.", category: 'S' },
+        { text: "Saya merasa nyaman melakukan pekerjaan yang butuh ketelitian dan kerapian.", category: 'S' },
+        { text: "Saya lebih suka hal-hal yang nyata dan bisa dilihat/disentuh daripada teori.", category: 'S' },
+        { text: "Saya adalah orang yang sangat sadar dengan lingkungan fisik di sekitar saya.", category: 'S' },
+        { text: "Saya lebih suka pekerjaan yang hasilnya bisa langsung terlihat.", category: 'S' },
+        // Thinking (9 Pertanyaan)
+        { text: "Saya membuat keputusan berdasarkan analisis logis dan data objektif.", category: 'T' },
+        { text: "Saya merasa puas ketika berhasil menemukan cara yang paling efisien untuk melakukan sesuatu.", category: 'T' },
+        { text: "Saya tidak ragu memberikan kritik jika itu bisa memperbaiki sistem.", category: 'T' },
+        { text: "Bagi saya, 'mengapa' sebuah aturan dibuat lebih penting daripada aturan itu sendiri.", category: 'T' },
+        { text: "Saya suka membongkar sesuatu untuk mencari tahu cara kerjanya.", category: 'T' },
+        { text: "Saya lebih mementingkan kebenaran dan konsistensi data daripada perasaan orang.", category: 'T' },
+        { text: "Saya suka membuat jadwal atau daftar untuk menyelesaikan banyak hal.", category: 'T' },
+        { text: "Saya tegas dalam mengambil keputusan berdasarkan fakta yang ada.", category: 'T' },
+        { text: "Saya melihat dunia sebagai sebuah sistem yang bisa dioptimalkan.", category: 'T' },
+        // Intuiting (9 Pertanyaan)
+        { text: "Saya sering memikirkan konsep-konsep besar dan gambaran di masa depan.", category: 'I' },
+        { text: "Saya suka mencari pola atau makna tersembunyi di balik informasi.", category: 'I' },
+        { text: "Saya sering mendapatkan ide-ide 'aha!' secara tiba-tiba.", category: 'I' },
+        { text: "Saya lebih tertarik pada 'apa yang mungkin terjadi' daripada 'apa yang sudah ada'.", category: 'I' },
+        { text: "Saya antusias untuk memulai proyek baru yang inovatif dan belum pernah ada.", category: 'I' },
+        { text: "Saya senang menginspirasi orang lain dengan visi dan ide-ide saya.", category: 'I' },
+        { text: "Saya tertarik pada konsep-konsep yang abstrak dan teoritis.", category: 'I' },
+        { text: "Saya sering melamun atau membayangkan berbagai kemungkinan.", category: 'I' },
+        { text: "Saya mudah melihat berbagai peluang dari suatu situasi.", category: 'I' },
+        // Feeling (9 Pertanyaan)
+        { text: "Saya sangat mempertimbangkan dampak keputusan saya terhadap perasaan orang lain.", category: 'F' },
+        { text: "Penting bagi saya untuk menjaga keharmonisan dalam sebuah kelompok.", category: 'F' },
+        { text: "Saya membuat keputusan berdasarkan nilai-nilai pribadi dan hati nurani saya.", category: 'F' },
+        { text: "Saya mudah merasakan suasana hati orang-orang di sekitar saya.", category: 'F' },
+        { text: "Saya senang membantu teman menyelesaikan masalah atau konflik di antara mereka.", category: 'F' },
+        { text: "Penting bagi saya untuk memastikan semua orang di sekitar merasa nyaman dan dihargai.", category: 'F' },
+        { text: "Saya pandai berkomunikasi dan membuat orang lain merasa didengarkan.", category: 'F' },
+        { text: "Saya merasa sangat terganggu jika melihat ketidakadilan.", category: 'F' },
+        { text: "Saya lebih suka menunjukkan kepedulian melalui tindakan nyata daripada kata-kata.", category: 'F' },
+        // Instinct (4 Pertanyaan)
+        { text: "Saya sering bertindak berdasarkan firasat atau intuisi sesaat, dan biasanya benar.", category: 'In' },
+        { text: "Saya cepat beradaptasi dengan perubahan atau situasi yang tidak terduga.", category: 'In' },
+        { text: "Saat ada masalah, saya cenderung langsung bertindak untuk menyelesaikannya.", category: 'In' },
+        { text: "Saya nyaman melakukan banyak hal berbeda sekaligus, walau tidak terlalu mendalam.", category: 'In' },
+        // Introvert vs Ekstrovert (5 Pertanyaan)
+        { text: "Saya merasa energi saya terisi kembali setelah menghabiskan waktu sendirian.", category: 'i' },
+        { text: "Saya lebih suka percakapan mendalam satu lawan satu daripada obrolan ringan di keramaian.", category: 'i' },
+        { text: "Saya cenderung berpikir terlebih dahulu sebelum berbicara.", category: 'i' },
+        { text: "Saya merasa lebih bersemangat dan berenergi setelah berinteraksi dengan banyak orang.", category: 'e' },
+        { text: "Saya suka menjadi pusat perhatian dalam sebuah diskusi atau acara sosial.", category: 'e' },
+        // Arah Hati (5 Pertanyaan)
+        { text: "Saya merasa lebih berhasil jika bisa membantu satu orang menyelesaikan masalah hidupnya, daripada jika saya berhasil menyelesaikan sebuah proyek besar yang menguntungkan.", category: 'arahHati' },
+        { text: "Definisi 'sukses' bagi saya adalah ketika saya melihat orang lain bertumbuh karena bimbingan saya, bukan karena pencapaian materi atau jabatan.", category: 'arahHati' },
+        { text: "Saya lebih tertarik pada peran yang menuntut saya untuk selalu siap sedia melayani kebutuhan komunitas yang tak terduga.", category: 'arahHati' },
+        { text: "Saya lebih termotivasi oleh kesempatan untuk membangun hubungan yang mendalam dengan banyak orang, daripada oleh kesempatan untuk membangun sistem yang efisien.", category: 'arahHati' },
+        { text: "Masalah yang paling menarik untuk saya pecahkan adalah masalah yang berkaitan dengan dinamika dan emosi manusia, bukan masalah yang berkaitan dengan sistem dan logika.", category: 'arahHati' }
+    ];
+
+    // ... (Salin semua objek database lainnya: resultsData, careerPathDatabase, dll. di sini)
 
     // --- FUNGSI RENDER UTAMA ---
-    const renderApp = () => {
-        // ... (Logika render utama yang sama seperti di respons sebelumnya)
-        // ... (Fungsi ini akan memilih konten mana yang akan ditampilkan: login, dashboard, dll.)
-    };
-    
+    // ... (Logika render utama yang sama seperti di respons sebelumnya)
+
     // --- TEMPLATE RENDERING ---
-    // (Salin semua fungsi render HTML seperti renderLogin, renderRegister, renderSidebar,
-    // renderAdminDashboardContent, renderAffiliateDashboardContent, renderUserDashboardContent,
-    // renderPayment, renderTest, renderResult, renderCounselorMVP, dll. di sini)
-    // Pastikan semua menggunakan class CSS baru yang bersih, bukan Neumorphic.
+    // ... (Salin semua fungsi render HTML lainnya)
 
     // --- FUNGSI LOGIKA UTAMA ---
-    // (Salin semua fungsi logika seperti handleLogin, handleRegister, handleProofUpload,
-    // processActivation, calculateResult, dll. dari versi semi-otomatis sebelumnya)
+    // ... (Salin semua fungsi logika lainnya)
 
     // --- INISIALISASI ---
-    onAuthStateChanged(auth, async (user) => {
-        // ... (Logika onAuthStateChanged yang sudah ada, yang menentukan state.currentPage)
-        renderApp();
-    });
-
-    // Panggil render pertama kali
-    renderApp();
+    // ... (Salin logika onAuthStateChanged yang sudah ada)
 </script>
 </body>
 </html>
