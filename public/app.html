@@ -6,27 +6,15 @@
     <title>Dashboard - jalankerja.id</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Chart.js for data visualization -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Firebase Libraries -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-    <!-- PDF Generation Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; }
         .screen { display: none; }
         .screen.active { display: block; }
-        .sidebar { transition: transform 0.3s ease-in-out; }
-        .sidebar-link { transition: all 0.2s ease; }
-        .sidebar-link:hover, .sidebar-link.active { background-color: #eef2ff; color: #4f46e5; border-radius: 8px; font-weight: 600; }
-        .kpi-card { background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .cta-button { transition: all 0.3s ease; }
-        .cta-button:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2); }
         .input-field {
             background-color: #f8f9fa;
             border: 1px solid #e5e7eb;
@@ -36,169 +24,230 @@
         }
         .input-field:focus {
             outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
         }
+        .cta-button { transition: all 0.3s ease; }
+        .cta-button:hover { transform: translateY(-2px); }
     </style>
 </head>
 <body class="text-gray-800">
 
-    <div id="app-container" class="w-full">
+    <div id="app-container" class="w-full min-h-screen flex items-center justify-center p-4">
         <!-- Loading Screen -->
-        <div id="loading-screen" class="screen active min-h-screen flex items-center justify-center">
-             <div class="text-center">
-                <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-600 mx-auto"></div>
-                <p class="mt-4 font-semibold text-gray-600">Memuat...</p>
-            </div>
+        <div id="loading-screen" class="screen active text-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-600"></div>
+            <p class="mt-4 font-semibold text-gray-600">Memuat...</p>
         </div>
 
-        <!-- Login / Register Screen (Centered) -->
-        <div id="auth-screen-container" class="screen min-h-screen flex items-center justify-center p-4">
+        <!-- Login / Register Screen -->
+        <div id="auth-screen-container" class="screen w-full max-w-md">
             <!-- Login/Register content will be rendered here -->
         </div>
 
-        <!-- Main Dashboard Layout (for logged-in users) -->
-        <div id="dashboard-layout" class="screen">
-            <div class="flex h-screen bg-gray-100">
-                <!-- Sidebar -->
-                <aside id="sidebar-container" class="w-64 bg-white shadow-lg flex-shrink-0 hidden lg:flex flex-col">
-                    <!-- Sidebar content will be rendered here -->
-                </aside>
-                
-                <!-- Main Content -->
-                <main class="flex-1 flex flex-col overflow-hidden">
-                    <header class="flex justify-between items-center p-4 bg-white border-b">
-                        <div class="flex items-center">
-                            <button id="menu-toggle-btn" class="text-gray-500 focus:outline-none lg:hidden">
-                                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6H20M4 12H20M4 18H11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                            </button>
-                            <h1 id="dashboard-title" class="text-xl font-semibold ml-4">Dashboard</h1>
-                        </div>
-                        <div class="flex items-center space-x-4">
-                            <div class="text-right">
-                                <p id="user-profile-name" class="font-semibold text-sm">Nama Pengguna</p>
-                                <p id="user-profile-role" class="text-xs text-gray-500">Peran</p>
-                            </div>
-                            <button id="logout-btn" class="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-600">Keluar</button>
-                        </div>
-                    </header>
-                    <div id="main-content-container" class="flex-1 p-6 overflow-y-auto">
-                        <!-- Dashboard content will be rendered here -->
-                    </div>
-                </main>
-            </div>
+        <!-- Main Dashboard Layout -->
+        <div id="dashboard-layout" class="screen w-full max-w-6xl">
+             <!-- Dashboard content will be rendered here -->
         </div>
     </div>
 
 <script type="module">
-    // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyA5KSxBE05HqdDM9rvu_ZAJHhxhtZQAWjY",
-    authDomain: "jalankerja-id.firebaseapp.com",
-    projectId: "jalankerja-id",
-    storageBucket: "jalankerja-id.firebasestorage.app",
-    messagingSenderId: "618843238157",
-    appId: "1:618843238157:web:356b3f4eb985f259668a44",
-    measurementId: "G-120E5TY2YZ"
-  };
+    // --- FIREBASE SETUP ---
+    // PENTING: Ganti dengan konfigurasi Firebase Anda
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_AUTH_DOMAIN",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
     
     const app = firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
     const functions = firebase.functions();
-    const storage = firebase.storage();
 
     // --- STATE MANAGEMENT ---
     let state = {
-        currentPage: 'loading',
+        currentPage: 'loading', // loading, login, register, test, result, admin_dashboard
         user: null,
         userData: null,
-        // ... state lainnya
     };
 
-    // --- KONTEN & DATABASE ---
+    // --- RENDER FUNCTIONS ---
+    const renderApp = () => {
+        const loadingScreen = document.getElementById('loading-screen');
+        const authContainer = document.getElementById('auth-screen-container');
+        const dashboardLayout = document.getElementById('dashboard-layout');
+
+        loadingScreen.classList.add('hidden');
+
+        if (!state.user) {
+            authContainer.classList.remove('hidden');
+            dashboardLayout.classList.add('hidden');
+            authContainer.innerHTML = state.currentPage === 'register' ? renderRegister() : renderLogin();
+        } else {
+            authContainer.classList.add('hidden');
+            dashboardLayout.classList.remove('hidden');
+            // Render dashboard content based on user role and test status
+            // ...
+        }
+        attachEventListeners();
+    };
+
+    const renderLogin = () => `
+        <div class="bg-white p-8 rounded-xl shadow-lg">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Masuk</h2>
+            <form id="login-form" class="space-y-6">
+                <input type="email" id="login-email" placeholder="Email" class="input-field" required>
+                <input type="password" id="login-password" placeholder="Password" class="input-field" required>
+                <button type="submit" class="w-full bg-indigo-600 text-white p-3 font-bold rounded-lg cta-button">Masuk</button>
+            </form>
+            <p class="text-center mt-4">Belum punya akun? <a href="#" id="show-register" class="text-indigo-600 font-semibold">Daftar di sini</a></p>
+            <p id="auth-error" class="text-red-500 text-center mt-4 h-5"></p>
+        </div>
+    `;
+
+    const renderRegister = () => `
+         <div class="bg-white p-8 rounded-xl shadow-lg">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Pendaftaran Siswa</h2>
+            <form id="register-form" class="space-y-4">
+                <input type="text" id="register-name" placeholder="Nama Lengkap" class="input-field" required>
+                <input type="email" id="register-email" placeholder="Email" class="input-field" required>
+                <input type="password" id="register-password" placeholder="Buat Password (min. 6 karakter)" class="input-field" required>
+                <input type="text" id="school-access-code" placeholder="Masukkan Kode Akses dari Sekolah" class="input-field uppercase" required>
+                <button type="submit" class="w-full bg-indigo-600 text-white p-3 font-bold rounded-lg cta-button">Daftar & Mulai Tes</button>
+            </form>
+            <p class="text-center mt-4">Sudah punya akun? <a href="#" id="show-login" class="text-indigo-600 font-semibold">Masuk di sini</a></p>
+        </div>
+    `;
     
-    // [UPDATE] KUESIONER BARU (50 PERTANYAAN)
-    const questions = [
-        // Sensing (9 Pertanyaan)
-        { text: "Saya lebih percaya pada pengalaman nyata daripada teori.", category: 'S' },
-        { text: "Saya mudah mengingat detail spesifik dari percakapan atau kejadian.", category: 'S' },
-        { text: "Saat belajar hal baru, saya lebih suka langsung mempraktikkannya.", category: 'S' },
-        { text: "Saya fokus pada apa yang terjadi saat ini, bukan berandai-andai tentang masa depan.", category: 'S' },
-        { text: "Saya lebih suka mengikuti instruksi yang sudah jelas langkah-langkahnya.", category: 'S' },
-        { text: "Saya merasa nyaman melakukan pekerjaan yang butuh ketelitian dan kerapian.", category: 'S' },
-        { text: "Saya lebih suka hal-hal yang nyata dan bisa dilihat/disentuh daripada teori.", category: 'S' },
-        { text: "Saya adalah orang yang sangat sadar dengan lingkungan fisik di sekitar saya.", category: 'S' },
-        { text: "Saya lebih suka pekerjaan yang hasilnya bisa langsung terlihat.", category: 'S' },
-        // Thinking (9 Pertanyaan)
-        { text: "Saya membuat keputusan berdasarkan analisis logis dan data objektif.", category: 'T' },
-        { text: "Saya merasa puas ketika berhasil menemukan cara yang paling efisien untuk melakukan sesuatu.", category: 'T' },
-        { text: "Saya tidak ragu memberikan kritik jika itu bisa memperbaiki sistem.", category: 'T' },
-        { text: "Bagi saya, 'mengapa' sebuah aturan dibuat lebih penting daripada aturan itu sendiri.", category: 'T' },
-        { text: "Saya suka membongkar sesuatu untuk mencari tahu cara kerjanya.", category: 'T' },
-        { text: "Saya lebih mementingkan kebenaran dan konsistensi data daripada perasaan orang.", category: 'T' },
-        { text: "Saya suka membuat jadwal atau daftar untuk menyelesaikan banyak hal.", category: 'T' },
-        { text: "Saya tegas dalam mengambil keputusan berdasarkan fakta yang ada.", category: 'T' },
-        { text: "Saya melihat dunia sebagai sebuah sistem yang bisa dioptimalkan.", category: 'T' },
-        // Intuiting (9 Pertanyaan)
-        { text: "Saya sering memikirkan konsep-konsep besar dan gambaran di masa depan.", category: 'I' },
-        { text: "Saya suka mencari pola atau makna tersembunyi di balik informasi.", category: 'I' },
-        { text: "Saya sering mendapatkan ide-ide 'aha!' secara tiba-tiba.", category: 'I' },
-        { text: "Saya lebih tertarik pada 'apa yang mungkin terjadi' daripada 'apa yang sudah ada'.", category: 'I' },
-        { text: "Saya antusias untuk memulai proyek baru yang inovatif dan belum pernah ada.", category: 'I' },
-        { text: "Saya senang menginspirasi orang lain dengan visi dan ide-ide saya.", category: 'I' },
-        { text: "Saya tertarik pada konsep-konsep yang abstrak dan teoritis.", category: 'I' },
-        { text: "Saya sering melamun atau membayangkan berbagai kemungkinan.", category: 'I' },
-        { text: "Saya mudah melihat berbagai peluang dari suatu situasi.", category: 'I' },
-        // Feeling (9 Pertanyaan)
-        { text: "Saya sangat mempertimbangkan dampak keputusan saya terhadap perasaan orang lain.", category: 'F' },
-        { text: "Penting bagi saya untuk menjaga keharmonisan dalam sebuah kelompok.", category: 'F' },
-        { text: "Saya membuat keputusan berdasarkan nilai-nilai pribadi dan hati nurani saya.", category: 'F' },
-        { text: "Saya mudah merasakan suasana hati orang-orang di sekitar saya.", category: 'F' },
-        { text: "Saya senang membantu teman menyelesaikan masalah atau konflik di antara mereka.", category: 'F' },
-        { text: "Penting bagi saya untuk memastikan semua orang di sekitar merasa nyaman dan dihargai.", category: 'F' },
-        { text: "Saya pandai berkomunikasi dan membuat orang lain merasa didengarkan.", category: 'F' },
-        { text: "Saya merasa sangat terganggu jika melihat ketidakadilan.", category: 'F' },
-        { text: "Saya lebih suka menunjukkan kepedulian melalui tindakan nyata daripada kata-kata.", category: 'F' },
-        // Instinct (4 Pertanyaan)
-        { text: "Saya sering bertindak berdasarkan firasat atau intuisi sesaat, dan biasanya benar.", category: 'In' },
-        { text: "Saya cepat beradaptasi dengan perubahan atau situasi yang tidak terduga.", category: 'In' },
-        { text: "Saat ada masalah, saya cenderung langsung bertindak untuk menyelesaikannya.", category: 'In' },
-        { text: "Saya nyaman melakukan banyak hal berbeda sekaligus, walau tidak terlalu mendalam.", category: 'In' },
-        // Introvert vs Ekstrovert (5 Pertanyaan)
-        { text: "Saya merasa energi saya terisi kembali setelah menghabiskan waktu sendirian.", category: 'i' },
-        { text: "Saya lebih suka percakapan mendalam satu lawan satu daripada obrolan ringan di keramaian.", category: 'i' },
-        { text: "Saya cenderung berpikir terlebih dahulu sebelum berbicara.", category: 'i' },
-        { text: "Saya merasa lebih bersemangat dan berenergi setelah berinteraksi dengan banyak orang.", category: 'e' },
-        { text: "Saya suka menjadi pusat perhatian dalam sebuah diskusi atau acara sosial.", category: 'e' },
-        // Arah Hati (5 Pertanyaan)
-        { text: "Saya merasa lebih berhasil jika bisa membantu satu orang menyelesaikan masalah hidupnya, daripada jika saya berhasil menyelesaikan sebuah proyek besar yang menguntungkan.", category: 'arahHati' },
-        { text: "Definisi 'sukses' bagi saya adalah ketika saya melihat orang lain bertumbuh karena bimbingan saya, bukan karena pencapaian materi atau jabatan.", category: 'arahHati' },
-        { text: "Saya lebih tertarik pada peran yang menuntut saya untuk selalu siap sedia melayani kebutuhan komunitas yang tak terduga.", category: 'arahHati' },
-        { text: "Saya lebih termotivasi oleh kesempatan untuk membangun hubungan yang mendalam dengan banyak orang, daripada oleh kesempatan untuk membangun sistem yang efisien.", category: 'arahHati' },
-        { text: "Masalah yang paling menarik untuk saya pecahkan adalah masalah yang berkaitan dengan dinamika dan emosi manusia, bukan masalah yang berkaitan dengan sistem dan logika.", category: 'arahHati' }
-    ];
+    // ... (Fungsi render lainnya: dashboard, test, result, admin)
 
-    // ... (Salin semua objek database lainnya: resultsData, careerPathDatabase, dll. di sini)
+    // --- LOGIC FUNCTIONS ---
+    const handleRegister = async (name, email, password, schoolCode) => {
+        const registerButton = document.querySelector('#register-form button');
+        registerButton.disabled = true;
+        registerButton.textContent = 'Memproses...';
 
-    // --- FUNGSI RENDER UTAMA ---
-    // ... (Logika render utama yang sama seperti di respons sebelumnya)
+        try {
+            const validateAndRegister = functions.httpsCallable('validateAndRegisterUser');
+            const result = await validateAndRegister({ name, email, password, schoolCode: schoolCode.toUpperCase() });
 
-    // --- TEMPLATE RENDERING ---
-    // ... (Salin semua fungsi render HTML lainnya)
+            if (result.data.success) {
+                // Login otomatis setelah pendaftaran berhasil
+                await auth.signInWithEmailAndPassword(email, password);
+                // onAuthStateChanged akan menangani sisanya
+            } else {
+                throw new Error(result.data.error || 'Kode akses tidak valid atau kuota sudah habis.');
+            }
+        } catch (error) {
+            alert(`Pendaftaran Gagal: ${error.message}`);
+            registerButton.disabled = false;
+            registerButton.textContent = 'Daftar & Mulai Tes';
+        }
+    };
+    
+    const handleLogin = async (email, password) => {
+        const loginButton = document.querySelector('#login-form button');
+        loginButton.disabled = true;
+        loginButton.textContent = 'Memproses...';
+        document.getElementById('auth-error').textContent = '';
+        try {
+            await auth.signInWithEmailAndPassword(email, password);
+        } catch (error) {
+            document.getElementById('auth-error').textContent = 'Email atau password salah.';
+            loginButton.disabled = false;
+            loginButton.textContent = 'Masuk';
+        }
+    };
 
-    // --- FUNGSI LOGIKA UTAMA ---
-    // ... (Salin semua fungsi logika lainnya)
+    // --- EVENT LISTENERS & INITIALIZATION ---
+    const attachEventListeners = () => {
+        // ... (Event listener untuk logout, start test, dll.)
 
-    // --- INISIALISASI ---
-    // ... (Salin logika onAuthStateChanged yang sudah ada)
+        const showRegisterLink = document.getElementById('show-register');
+        if (showRegisterLink) {
+            showRegisterLink.addEventListener('click', e => {
+                e.preventDefault();
+                state.currentPage = 'register';
+                renderApp();
+            });
+        }
+
+        const showLoginLink = document.getElementById('show-login');
+        if (showLoginLink) {
+            showLoginLink.addEventListener('click', e => {
+                e.preventDefault();
+                state.currentPage = 'login';
+                renderApp();
+            });
+        }
+
+        const loginForm = document.getElementById('login-form');
+        if (loginForm) {
+            loginForm.addEventListener('submit', e => {
+                e.preventDefault();
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+                handleLogin(email, password);
+            });
+        }
+        
+        const registerForm = document.getElementById('register-form');
+        if (registerForm) {
+            registerForm.addEventListener('submit', e => {
+                e.preventDefault();
+                const name = document.getElementById('register-name').value;
+                const email = document.getElementById('register-email').value;
+                const password = document.getElementById('register-password').value;
+                const schoolCode = document.getElementById('school-access-code').value;
+                handleRegister(name, email, password, schoolCode);
+            });
+        }
+    };
+    
+    // Fungsi untuk membaca "Link Ajaib"
+    const checkUrlForCode = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const schoolCode = urlParams.get('kode');
+        if (schoolCode) {
+            state.currentPage = 'register'; // Langsung arahkan ke halaman daftar
+            // Tunggu DOM siap, lalu isi field
+            setTimeout(() => {
+                const codeInput = document.getElementById('school-access-code');
+                if (codeInput) {
+                    codeInput.value = schoolCode.toUpperCase();
+                }
+            }, 100);
+        }
+    };
+
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            state.user = user;
+            const userDoc = await db.collection('users').doc(user.uid).get();
+            if (userDoc.exists) {
+                state.userData = userDoc.data();
+                if (state.userData.role === 'admin') {
+                    state.currentPage = 'admin_dashboard';
+                } else if (state.userData.testAttemptsRemaining > 0) {
+                    state.currentPage = 'test';
+                } else {
+                    state.currentPage = 'result';
+                }
+            }
+        } else {
+            state.user = null;
+            state.userData = null;
+            state.currentPage = 'login';
+            checkUrlForCode(); // Cek kode hanya jika user belum login
+        }
+        renderApp();
+    });
+
+    renderApp();
 </script>
 </body>
 </html>
