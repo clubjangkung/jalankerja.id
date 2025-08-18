@@ -79,7 +79,15 @@
 
 <script type="module">
     // --- FIREBASE SETUP ---
-    const firebaseConfig = { /* ... Konfigurasi Anda ... */ };
+    // PENTING: Ganti dengan konfigurasi Firebase Anda
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_AUTH_DOMAIN",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
     const app = firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const functions = firebase.functions();
@@ -88,8 +96,80 @@
     const loginContainer = document.getElementById('login-container');
     const registerContainer = document.getElementById('register-container');
     const forgotPasswordContainer = document.getElementById('forgot-password-container');
+    const authError = document.getElementById('auth-error');
     
-    // --- LOGIC ---
+    // --- VIEW SWITCHING LOGIC ---
+    const showRegisterLink = document.getElementById('show-register');
+    const showLoginLink = document.getElementById('show-login');
+    const showForgotPasswordLink = document.getElementById('show-forgot-password');
+    const backToLoginLink = document.getElementById('back-to-login');
+
+    showRegisterLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        loginContainer.classList.add('hidden');
+        forgotPasswordContainer.classList.add('hidden');
+        registerContainer.classList.remove('hidden');
+        checkUrlForCode();
+    });
+
+    showLoginLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        registerContainer.classList.add('hidden');
+        forgotPasswordContainer.classList.add('hidden');
+        loginContainer.classList.remove('hidden');
+    });
+
+    showForgotPasswordLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        loginContainer.classList.add('hidden');
+        registerContainer.classList.add('hidden');
+        forgotPasswordContainer.classList.remove('hidden');
+    });
+
+    backToLoginLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        forgotPasswordContainer.classList.add('hidden');
+        registerContainer.classList.add('hidden');
+        loginContainer.classList.remove('hidden');
+    });
+
+    // --- FORM HANDLING LOGIC ---
+    const handleRegister = async (name, email, password, schoolCode) => {
+        const registerButton = document.querySelector('#register-form button');
+        registerButton.disabled = true;
+        registerButton.textContent = 'Memproses...';
+        authError.textContent = '';
+
+        try {
+            const validateAndRegister = functions.httpsCallable('validateAndRegisterUser');
+            const result = await validateAndRegister({ name, email, password, schoolCode: schoolCode.toUpperCase() });
+
+            if (result.data.success) {
+                await auth.signInWithEmailAndPassword(email, password);
+            } else {
+                throw new Error(result.data.error || 'Terjadi kesalahan.');
+            }
+        } catch (error) {
+            authError.textContent = `Pendaftaran Gagal: ${error.message}`;
+            registerButton.disabled = false;
+            registerButton.textContent = 'Daftar & Mulai Tes';
+        }
+    };
+
+    const handleLogin = async (email, password) => {
+        const loginButton = document.querySelector('#login-form button');
+        loginButton.disabled = true;
+        loginButton.textContent = 'Memproses...';
+        authError.textContent = '';
+        try {
+            await auth.signInWithEmailAndPassword(email, password);
+        } catch (error) {
+            authError.textContent = 'Email atau password salah.';
+            loginButton.disabled = false;
+            loginButton.textContent = 'Masuk';
+        }
+    };
+
     const handleForgotPassword = async (email) => {
         const button = document.querySelector('#forgot-password-form button');
         const messageEl = document.getElementById('forgot-message');
@@ -111,18 +191,51 @@
         }
     };
 
-    // --- EVENT LISTENERS ---
-    document.getElementById('show-register').addEventListener('click', e => { e.preventDefault(); loginContainer.classList.add('hidden'); forgotPasswordContainer.classList.add('hidden'); registerContainer.classList.remove('hidden'); });
-    document.getElementById('show-login').addEventListener('click', e => { e.preventDefault(); registerContainer.classList.add('hidden'); forgotPasswordContainer.classList.add('hidden'); loginContainer.classList.remove('hidden'); });
-    document.getElementById('show-forgot-password').addEventListener('click', e => { e.preventDefault(); loginContainer.classList.add('hidden'); registerContainer.classList.add('hidden'); forgotPasswordContainer.classList.remove('hidden'); });
-    document.getElementById('back-to-login').addEventListener('click', e => { e.preventDefault(); forgotPasswordContainer.classList.add('hidden'); registerContainer.classList.add('hidden'); loginContainer.classList.remove('hidden'); });
-    
+    // --- EVENT LISTENERS FOR FORMS ---
+    document.getElementById('login-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        handleLogin(e.target['login-email'].value, e.target['login-password'].value);
+    });
+
+    document.getElementById('register-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        handleRegister(
+            e.target['register-name'].value,
+            e.target['register-email'].value,
+            e.target['register-password'].value,
+            e.target['school-access-code'].value
+        );
+    });
+
     document.getElementById('forgot-password-form').addEventListener('submit', e => {
         e.preventDefault();
         handleForgotPassword(e.target['forgot-email'].value);
     });
 
-    // ... (Salin semua logika dan event listener lain dari versi sebelumnya)
+    // --- INITIALIZATION ---
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            window.location.href = 'app.html'; // Redirect to main app if logged in
+        }
+    });
+
+    const checkUrlForCode = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const schoolCode = urlParams.get('kode');
+        if (schoolCode) {
+            const codeInput = document.getElementById('school-access-code');
+            if (codeInput) {
+                codeInput.value = schoolCode.toUpperCase();
+            }
+        }
+    };
+
+    // Check if the URL hash or query param indicates register view
+    if (window.location.hash === '#register' || new URLSearchParams(window.location.search).get('kode')) {
+        loginContainer.classList.add('hidden');
+        registerContainer.classList.remove('hidden');
+        checkUrlForCode();
+    }
 </script>
 </body>
 </html>
