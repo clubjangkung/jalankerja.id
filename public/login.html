@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masuk - jalankerja</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Firebase Libraries -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .cta-button { transition: all 0.3s ease; }
+        .cta-button:hover { transform: translateY(-2px); }
+        .input-field {
+            background-color: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            width: 100%;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="text-gray-900 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="text-center mb-8">
+        <a href="index.html" class="text-3xl font-extrabold text-indigo-600">
+            jalankerja
+        </a>
+    </div>
+
+    <!-- Login Form -->
+    <div id="login-container" class="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Selamat Datang Kembali</h2>
+        <form id="login-form" class="space-y-6">
+            <input type="email" id="login-email" placeholder="Email" class="input-field" required>
+            <input type="password" id="login-password" placeholder="Password" class="input-field" required>
+            <div class="text-right">
+                <a href="#" id="show-forgot-password" class="text-sm text-indigo-600 hover:underline">Lupa Password?</a>
+            </div>
+            <button type="submit" class="w-full cta-button bg-indigo-600 text-white p-3 font-bold text-lg rounded-lg">Masuk</button>
+        </form>
+        <p class="text-center mt-4">Siswa baru? <a href="#" id="show-register" class="text-indigo-600 font-semibold">Daftar di sini</a></p>
+        <p id="auth-error" class="text-red-500 text-center mt-4 h-5"></p>
+    </div>
+
+    <!-- Register Form -->
+    <div id="register-container" class="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full hidden">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Pendaftaran Siswa</h2>
+        <form id="register-form" class="space-y-4">
+            <input type="text" id="register-name" placeholder="Nama Lengkap" class="input-field" required>
+            <input type="email" id="register-email" placeholder="Email" class="input-field" required>
+            <input type="password" id="register-password" placeholder="Buat Password (min. 6 karakter)" class="input-field" required>
+            <input type="text" id="school-access-code" placeholder="Masukkan Kode Akses dari Sekolah" class="input-field uppercase" required>
+            <button type="submit" class="w-full cta-button bg-indigo-600 text-white p-3 font-bold text-lg rounded-lg">Daftar & Mulai Tes</button>
+        </form>
+        <p class="text-center mt-4">Sudah punya akun? <a href="#" id="show-login" class="text-indigo-600 font-semibold">Masuk di sini</a></p>
+    </div>
+
+    <!-- Forgot Password Form -->
+    <div id="forgot-password-container" class="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full hidden">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Reset Password</h2>
+        <p class="text-center text-gray-600 mb-6">Masukkan email Anda, dan kami akan mengirimkan link untuk membuat password baru.</p>
+        <form id="forgot-password-form" class="space-y-4">
+            <input type="email" id="forgot-email" placeholder="Email" class="input-field" required>
+            <button type="submit" class="w-full cta-button bg-indigo-600 text-white p-3 font-bold text-lg rounded-lg">Kirim Link Reset</button>
+        </form>
+        <p id="forgot-message" class="text-center mt-4 h-5"></p>
+        <p class="text-center mt-4"><a href="#" id="back-to-login" class="text-indigo-600 font-semibold">Kembali ke Halaman Login</a></p>
+    </div>
+
+<script type="module">
+    // --- FIREBASE SETUP ---
+    const firebaseConfig = { /* ... Konfigurasi Anda ... */ };
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const functions = firebase.functions();
+
+    // --- DOM ELEMENTS ---
+    const loginContainer = document.getElementById('login-container');
+    const registerContainer = document.getElementById('register-container');
+    const forgotPasswordContainer = document.getElementById('forgot-password-container');
+    
+    // --- LOGIC ---
+    const handleForgotPassword = async (email) => {
+        const button = document.querySelector('#forgot-password-form button');
+        const messageEl = document.getElementById('forgot-message');
+        button.disabled = true;
+        button.textContent = 'Mengirim...';
+        messageEl.textContent = '';
+        try {
+            await auth.sendPasswordResetEmail(email);
+            messageEl.textContent = 'Link reset telah terkirim! Silakan cek email Anda.';
+            messageEl.classList.add('text-green-600');
+            messageEl.classList.remove('text-red-600');
+        } catch (error) {
+            messageEl.textContent = 'Gagal mengirim link. Pastikan email sudah benar.';
+            messageEl.classList.add('text-red-600');
+            messageEl.classList.remove('text-green-600');
+        } finally {
+            button.disabled = false;
+            button.textContent = 'Kirim Link Reset';
+        }
+    };
+
+    // --- EVENT LISTENERS ---
+    document.getElementById('show-register').addEventListener('click', e => { e.preventDefault(); loginContainer.classList.add('hidden'); forgotPasswordContainer.classList.add('hidden'); registerContainer.classList.remove('hidden'); });
+    document.getElementById('show-login').addEventListener('click', e => { e.preventDefault(); registerContainer.classList.add('hidden'); forgotPasswordContainer.classList.add('hidden'); loginContainer.classList.remove('hidden'); });
+    document.getElementById('show-forgot-password').addEventListener('click', e => { e.preventDefault(); loginContainer.classList.add('hidden'); registerContainer.classList.add('hidden'); forgotPasswordContainer.classList.remove('hidden'); });
+    document.getElementById('back-to-login').addEventListener('click', e => { e.preventDefault(); forgotPasswordContainer.classList.add('hidden'); registerContainer.classList.add('hidden'); loginContainer.classList.remove('hidden'); });
+    
+    document.getElementById('forgot-password-form').addEventListener('submit', e => {
+        e.preventDefault();
+        handleForgotPassword(e.target['forgot-email'].value);
+    });
+
+    // ... (Salin semua logika dan event listener lain dari versi sebelumnya)
+</script>
+</body>
+</html>
