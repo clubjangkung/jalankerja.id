@@ -2,19 +2,31 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - jalankerja.id</title>
+    <meta name="viewport" content="width=device-width, initial-scale-1.0">
+    <title>Dashboard - jalankerja</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Firebase Libraries -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <!-- PDF Generation Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; }
         .screen { display: none; }
         .screen.active { display: block; }
+        .sidebar { transition: transform 0.3s ease-in-out; }
+        .sidebar-link { transition: all 0.2s ease; }
+        .sidebar-link:hover, .sidebar-link.active { background-color: #eef2ff; color: #4f46e5; border-radius: 8px; font-weight: 600; }
+        .kpi-card { background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .cta-button { transition: all 0.3s ease; }
+        .cta-button:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2); }
         .input-field {
             background-color: #f8f9fa;
             border: 1px solid #e5e7eb;
@@ -27,27 +39,49 @@
             border-color: #4f46e5;
             box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
         }
-        .cta-button { transition: all 0.3s ease; }
-        .cta-button:hover { transform: translateY(-2px); }
     </style>
 </head>
 <body class="text-gray-800">
 
-    <div id="app-container" class="w-full min-h-screen flex items-center justify-center p-4">
+    <div id="app-container" class="w-full">
         <!-- Loading Screen -->
-        <div id="loading-screen" class="screen active text-center">
-            <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-600"></div>
-            <p class="mt-4 font-semibold text-gray-600">Memuat...</p>
+        <div id="loading-screen" class="screen active min-h-screen flex items-center justify-center">
+             <div class="text-center">
+                <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-600 mx-auto"></div>
+                <p class="mt-4 font-semibold text-gray-600">Memuat...</p>
+            </div>
         </div>
 
-        <!-- Login / Register Screen -->
-        <div id="auth-screen-container" class="screen w-full max-w-md">
-            <!-- Login/Register content will be rendered here -->
-        </div>
-
-        <!-- Main Dashboard Layout -->
-        <div id="dashboard-layout" class="screen w-full max-w-6xl">
-             <!-- Dashboard content will be rendered here -->
+        <!-- Main Dashboard Layout (HANYA UNTUK PENGGUNA YANG SUDAH LOGIN) -->
+        <div id="dashboard-layout" class="screen">
+            <div class="flex h-screen bg-gray-100">
+                <!-- Sidebar -->
+                <aside id="sidebar-container" class="w-64 bg-white shadow-lg flex-shrink-0 hidden lg:flex flex-col">
+                    <!-- Sidebar content will be rendered here -->
+                </aside>
+                
+                <!-- Main Content -->
+                <main class="flex-1 flex flex-col overflow-hidden">
+                    <header class="flex justify-between items-center p-4 bg-white border-b">
+                        <div class="flex items-center">
+                            <button id="menu-toggle-btn" class="text-gray-500 focus:outline-none lg:hidden">
+                                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6H20M4 12H20M4 18H11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </button>
+                            <h1 id="dashboard-title" class="text-xl font-semibold ml-4">Dashboard</h1>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div class="text-right">
+                                <p id="user-profile-name" class="font-semibold text-sm">Nama Pengguna</p>
+                                <p id="user-profile-role" class="text-xs text-gray-500">Peran</p>
+                            </div>
+                            <button id="logout-btn" class="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-600">Keluar</button>
+                        </div>
+                    </header>
+                    <div id="main-content-container" class="flex-1 p-6 overflow-y-auto">
+                        <!-- Dashboard content will be rendered here -->
+                    </div>
+                </main>
+            </div>
         </div>
     </div>
 
@@ -67,10 +101,11 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     const functions = firebase.functions();
+    const storage = firebase.storage();
 
     // --- STATE MANAGEMENT ---
     let state = {
-        currentPage: 'loading', // loading, login, register, test, result, admin_dashboard
+        currentPage: 'loading',
         user: null,
         userData: null,
     };
@@ -78,176 +113,102 @@
     // --- RENDER FUNCTIONS ---
     const renderApp = () => {
         const loadingScreen = document.getElementById('loading-screen');
-        const authContainer = document.getElementById('auth-screen-container');
         const dashboardLayout = document.getElementById('dashboard-layout');
 
-        loadingScreen.classList.add('hidden');
-
-        if (!state.user) {
-            authContainer.classList.remove('hidden');
+        if (state.currentPage === 'loading') {
+            loadingScreen.classList.remove('hidden');
             dashboardLayout.classList.add('hidden');
-            authContainer.innerHTML = state.currentPage === 'register' ? renderRegister() : renderLogin();
+            return;
+        }
+
+        loadingScreen.classList.add('hidden');
+        dashboardLayout.classList.remove('hidden');
+        
+        document.getElementById('sidebar-container').innerHTML = renderSidebar();
+        document.getElementById('user-profile-name').textContent = state.userData?.displayName || state.user.email;
+        document.getElementById('user-profile-role').textContent = state.userData?.role === 'admin' ? 'Admin' : 'Siswa';
+
+        const mainContent = document.getElementById('main-content-container');
+        if (state.userData?.role === 'admin') {
+            mainContent.innerHTML = renderAdminDashboardContent();
+            // initAdminCharts(); // Panggil fungsi chart di sini jika perlu
         } else {
-            authContainer.classList.add('hidden');
-            dashboardLayout.classList.remove('hidden');
-            // Render dashboard content based on user role and test status
-            // ...
+            mainContent.innerHTML = renderUserDashboardContent();
         }
         attachEventListeners();
     };
+    
+    const renderSidebar = () => {
+        const isAdmin = state.userData?.role === 'admin';
+        let links = '';
+        if (isAdmin) {
+            links = `<a href="#" class="sidebar-link active p-3">Dashboard Admin</a>`;
+        } else {
+            links = `<a href="#" class="sidebar-link active p-3">Dashboard Siswa</a>`;
+        }
+        return `
+            <div class="p-4">
+                <a href="index.html" class="text-2xl font-extrabold">jalan<span class="text-indigo-600">kerja</span></a>
+            </div>
+            <nav class="mt-6 px-4 space-y-2">${links}</nav>
+        `;
+    };
 
-    const renderLogin = () => `
-        <div class="bg-white p-8 rounded-xl shadow-lg">
-            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Masuk</h2>
-            <form id="login-form" class="space-y-6">
-                <input type="email" id="login-email" placeholder="Email" class="input-field" required>
-                <input type="password" id="login-password" placeholder="Password" class="input-field" required>
-                <button type="submit" class="w-full bg-indigo-600 text-white p-3 font-bold rounded-lg cta-button">Masuk</button>
-            </form>
-            <p class="text-center mt-4">Belum punya akun? <a href="#" id="show-register" class="text-indigo-600 font-semibold">Daftar di sini</a></p>
-            <p id="auth-error" class="text-red-500 text-center mt-4 h-5"></p>
+    const renderAdminDashboardContent = () => `
+        <div class="bg-white p-6 rounded-xl shadow-lg">
+            <h2 class="text-2xl font-bold">Selamat Datang, Admin!</h2>
+            <p class="mt-2 text-gray-600">Ini adalah panel kontrol Anda.</p>
+            <!-- Tambahkan semua fitur admin di sini -->
         </div>
     `;
 
-    const renderRegister = () => `
-         <div class="bg-white p-8 rounded-xl shadow-lg">
-            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Pendaftaran Siswa</h2>
-            <form id="register-form" class="space-y-4">
-                <input type="text" id="register-name" placeholder="Nama Lengkap" class="input-field" required>
-                <input type="email" id="register-email" placeholder="Email" class="input-field" required>
-                <input type="password" id="register-password" placeholder="Buat Password (min. 6 karakter)" class="input-field" required>
-                <input type="text" id="school-access-code" placeholder="Masukkan Kode Akses dari Sekolah" class="input-field uppercase" required>
-                <button type="submit" class="w-full bg-indigo-600 text-white p-3 font-bold rounded-lg cta-button">Daftar & Mulai Tes</button>
-            </form>
-            <p class="text-center mt-4">Sudah punya akun? <a href="#" id="show-login" class="text-indigo-600 font-semibold">Masuk di sini</a></p>
+    const renderUserDashboardContent = () => `
+        <div class="bg-white p-6 rounded-xl shadow-lg">
+            <h2 class="text-2xl font-bold">Selamat Datang, ${state.userData?.displayName}!</h2>
+            <p class="mt-2 text-gray-600">Ini adalah dashboard siswa Anda.</p>
+            <!-- Tambahkan semua fitur siswa di sini -->
         </div>
     `;
-    
-    // ... (Fungsi render lainnya: dashboard, test, result, admin)
 
-    // --- LOGIC FUNCTIONS ---
-    const handleRegister = async (name, email, password, schoolCode) => {
-        const registerButton = document.querySelector('#register-form button');
-        registerButton.disabled = true;
-        registerButton.textContent = 'Memproses...';
-
-        try {
-            const validateAndRegister = functions.httpsCallable('validateAndRegisterUser');
-            const result = await validateAndRegister({ name, email, password, schoolCode: schoolCode.toUpperCase() });
-
-            if (result.data.success) {
-                // Login otomatis setelah pendaftaran berhasil
-                await auth.signInWithEmailAndPassword(email, password);
-                // onAuthStateChanged akan menangani sisanya
-            } else {
-                throw new Error(result.data.error || 'Kode akses tidak valid atau kuota sudah habis.');
-            }
-        } catch (error) {
-            alert(`Pendaftaran Gagal: ${error.message}`);
-            registerButton.disabled = false;
-            registerButton.textContent = 'Daftar & Mulai Tes';
-        }
-    };
-    
-    const handleLogin = async (email, password) => {
-        const loginButton = document.querySelector('#login-form button');
-        loginButton.disabled = true;
-        loginButton.textContent = 'Memproses...';
-        document.getElementById('auth-error').textContent = '';
-        try {
-            await auth.signInWithEmailAndPassword(email, password);
-        } catch (error) {
-            document.getElementById('auth-error').textContent = 'Email atau password salah.';
-            loginButton.disabled = false;
-            loginButton.textContent = 'Masuk';
-        }
-    };
-
-    // --- EVENT LISTENERS & INITIALIZATION ---
+    // --- EVENT LISTENERS ---
     const attachEventListeners = () => {
-        // ... (Event listener untuk logout, start test, dll.)
-
-        const showRegisterLink = document.getElementById('show-register');
-        if (showRegisterLink) {
-            showRegisterLink.addEventListener('click', e => {
-                e.preventDefault();
-                state.currentPage = 'register';
-                renderApp();
-            });
-        }
-
-        const showLoginLink = document.getElementById('show-login');
-        if (showLoginLink) {
-            showLoginLink.addEventListener('click', e => {
-                e.preventDefault();
-                state.currentPage = 'login';
-                renderApp();
-            });
-        }
-
-        const loginForm = document.getElementById('login-form');
-        if (loginForm) {
-            loginForm.addEventListener('submit', e => {
-                e.preventDefault();
-                const email = document.getElementById('login-email').value;
-                const password = document.getElementById('login-password').value;
-                handleLogin(email, password);
-            });
-        }
-        
-        const registerForm = document.getElementById('register-form');
-        if (registerForm) {
-            registerForm.addEventListener('submit', e => {
-                e.preventDefault();
-                const name = document.getElementById('register-name').value;
-                const email = document.getElementById('register-email').value;
-                const password = document.getElementById('register-password').value;
-                const schoolCode = document.getElementById('school-access-code').value;
-                handleRegister(name, email, password, schoolCode);
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async () => {
+                await auth.signOut();
+                window.location.href = 'login.html';
             });
         }
     };
-    
-    // Fungsi untuk membaca "Link Ajaib"
-    const checkUrlForCode = () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const schoolCode = urlParams.get('kode');
-        if (schoolCode) {
-            state.currentPage = 'register'; // Langsung arahkan ke halaman daftar
-            // Tunggu DOM siap, lalu isi field
-            setTimeout(() => {
-                const codeInput = document.getElementById('school-access-code');
-                if (codeInput) {
-                    codeInput.value = schoolCode.toUpperCase();
-                }
-            }, 100);
-        }
-    };
 
+    // --- INISIALISASI ---
     auth.onAuthStateChanged(async (user) => {
         if (user) {
+            console.log("User terdeteksi:", user.uid);
             state.user = user;
-            const userDoc = await db.collection('users').doc(user.uid).get();
-            if (userDoc.exists) {
-                state.userData = userDoc.data();
-                if (state.userData.role === 'admin') {
-                    state.currentPage = 'admin_dashboard';
-                } else if (state.userData.testAttemptsRemaining > 0) {
-                    state.currentPage = 'test';
+            try {
+                const userDocRef = db.collection('users').doc(user.uid);
+                const userDoc = await userDocRef.get();
+
+                if (userDoc.exists) {
+                    console.log("Data user ditemukan di Firestore.");
+                    state.userData = userDoc.data();
+                    // Langsung render, jangan set currentPage di sini
+                    renderApp();
                 } else {
-                    state.currentPage = 'result';
+                    console.error("User terotentikasi, tapi data tidak ditemukan di Firestore!");
+                    // Paksa logout jika data tidak konsisten
+                    await auth.signOut();
                 }
+            } catch (error) {
+                console.error("Error saat mengambil data user:", error);
+                await auth.signOut();
             }
         } else {
-            state.user = null;
-            state.userData = null;
-            state.currentPage = 'login';
-            checkUrlForCode(); // Cek kode hanya jika user belum login
+            console.log("Tidak ada user, mengarahkan ke halaman login.");
+            window.location.href = 'login.html';
         }
-        renderApp();
     });
-
-    renderApp();
 </script>
 </body>
 </html>
